@@ -1,0 +1,38 @@
+{
+  "name": "trading-tracker-performance",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "db:push": "prisma db push",
+    "db:generate": "prisma generate"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ItsmeHelmy/Trading-Tracker-Performance.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ItsmeHelmy/Trading-Tracker-Performance/issues"
+  },
+  "homepage": "https://github.com/ItsmeHelmy/Trading-Tracker-Performance#readme",
+  "dependencies": {
+    "@prisma/client": "^5.22.0",
+    "@types/node": "^25.6.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "autoprefixer": "^10.5.0",
+    "next": "^16.2.4",
+    "postcss": "^8.5.10",
+    "prisma": "^5.22.0",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "tailwindcss": "^3.4.19",
+    "typescript": "^6.0.3"
+  }
+}
