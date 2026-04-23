@@ -27,6 +27,21 @@ export function CalendarView({ summaries }: CalendarViewProps) {
 
   const today = new Date().toISOString().split('T')[0]
 
+  function getDayClassName(summary: DailySummary | undefined, isToday: boolean): string {
+    const hasTrades = summary && !summary.no_trade && summary.trades.length > 0
+    const isNoTrade = summary?.no_trade
+    return [
+      'min-h-[60px] p-1.5 rounded-lg text-xs flex flex-col transition-all',
+      summary ? 'cursor-pointer hover:opacity-80' : '',
+      isToday ? 'ring-2 ring-blue-500' : '',
+      hasTrades && summary.pnl > 0 ? 'bg-emerald-50 border border-emerald-200' : '',
+      hasTrades && summary.pnl < 0 ? 'bg-red-50 border border-red-200' : '',
+      hasTrades && summary.pnl === 0 ? 'bg-gray-50 border border-gray-200' : '',
+      isNoTrade ? 'bg-gray-50 border border-dashed border-gray-300' : '',
+      !summary ? 'bg-white border border-gray-100' : '',
+    ].filter(Boolean).join(' ')
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
@@ -59,16 +74,7 @@ export function CalendarView({ summaries }: CalendarViewProps) {
             <div
               key={day}
               onClick={() => summary && setSelectedDay(summary)}
-              className={[
-                'min-h-[60px] p-1.5 rounded-lg text-xs flex flex-col transition-all',
-                summary ? 'cursor-pointer hover:opacity-80' : '',
-                isToday ? 'ring-2 ring-blue-500' : '',
-                hasTrades && summary.pnl > 0 ? 'bg-emerald-50 border border-emerald-200' : '',
-                hasTrades && summary.pnl < 0 ? 'bg-red-50 border border-red-200' : '',
-                hasTrades && summary.pnl === 0 ? 'bg-gray-50 border border-gray-200' : '',
-                isNoTrade ? 'bg-gray-50 border border-dashed border-gray-300' : '',
-                !summary ? 'bg-white border border-gray-100' : '',
-              ].filter(Boolean).join(' ')}
+              className={getDayClassName(summary, isToday)}
             >
               <span className={`font-medium ${isToday ? 'text-blue-600' : 'text-gray-700'}`}>{day}</span>
               {hasTrades && (
