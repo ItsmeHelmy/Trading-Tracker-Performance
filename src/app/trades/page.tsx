@@ -23,11 +23,17 @@ export default function TradesPage() {
     setLoading(false)
   }
 
-  useEffect(() => { fetchTrades() }, [])
+  useEffect(() => {
+    fetchTrades()
+  }, [])
 
   const handleCreate = async (data: Omit<Trade, 'id' | 'createdAt'>) => {
     setSubmitting(true)
-    await fetch('/api/trades', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
+    await fetch('/api/trades', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
     await fetchTrades()
     setShowForm(false)
     setSubmitting(false)
@@ -36,7 +42,11 @@ export default function TradesPage() {
   const handleUpdate = async (data: Omit<Trade, 'id' | 'createdAt'>) => {
     if (!editTrade) return
     setSubmitting(true)
-    await fetch(`/api/trades/${editTrade.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
+    await fetch('/api/trades/' + editTrade.id, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
     await fetchTrades()
     setEditTrade(null)
     setSubmitting(false)
@@ -44,63 +54,80 @@ export default function TradesPage() {
 
   const handleDelete = async (id: number) => {
     if (!confirm('Delete this trade?')) return
-    await fetch(`/api/trades/${id}`, { method: 'DELETE' })
+    await fetch('/api/trades/' + id, { method: 'DELETE' })
     await fetchTrades()
   }
 
   const handleNoTrade = async () => {
-    await fetch('/api/daily-summary', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ date: noTradeDate, no_trade: true }) })
+    await fetch('/api/daily-summary', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ date: noTradeDate, no_trade: true }),
+    })
     setShowNoTrade(false)
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className='space-y-6'>
+      <div className='flex items-center justify-between'>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Trades</h1>
-          <p className="text-gray-500 mt-1">Manage your trading journal</p>
+          <h1 className='text-2xl font-bold text-gray-900 dark:text-gray-100'>Trades</h1>
+          <p className='text-gray-500 dark:text-gray-400 mt-1'>Manage your trading journal</p>
         </div>
-        <div className="flex gap-3">
-          <Button variant="secondary" onClick={() => setShowNoTrade(true)}>Mark No Trade</Button>
+        <div className='flex gap-3'>
+          <Button variant='secondary' onClick={() => setShowNoTrade(true)}>
+            Mark No Trade
+          </Button>
           <Button onClick={() => setShowForm(true)}>+ Add Trade</Button>
         </div>
       </div>
 
-      <Card className="p-0">
+      <Card className='p-0'>
         {loading ? (
-          <div className="p-6 space-y-3">
-            {[...Array(3)].map((_, i) => <div key={i} className="animate-pulse bg-gray-100 h-10 rounded-lg" />)}
+          <div className='p-6 space-y-3'>
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className='animate-pulse bg-gray-100 dark:bg-gray-800 h-10 rounded-lg' />
+            ))}
           </div>
         ) : (
           <TradeTable trades={trades} onEdit={setEditTrade} onDelete={handleDelete} />
         )}
       </Card>
 
-      <Modal isOpen={showForm} onClose={() => setShowForm(false)} title="Add New Trade">
+      <Modal isOpen={showForm} onClose={() => setShowForm(false)} title='Add New Trade'>
         <TradeForm onSubmit={handleCreate} onCancel={() => setShowForm(false)} isLoading={submitting} />
       </Modal>
 
-      <Modal isOpen={!!editTrade} onClose={() => setEditTrade(null)} title="Edit Trade">
+      <Modal isOpen={!!editTrade} onClose={() => setEditTrade(null)} title='Edit Trade'>
         {editTrade && (
-          <TradeForm initialData={editTrade} onSubmit={handleUpdate} onCancel={() => setEditTrade(null)} isLoading={submitting} />
+          <TradeForm
+            initialData={editTrade}
+            onSubmit={handleUpdate}
+            onCancel={() => setEditTrade(null)}
+            isLoading={submitting}
+          />
         )}
       </Modal>
 
-      <Modal isOpen={showNoTrade} onClose={() => setShowNoTrade(false)} title="Mark No Trade Day">
-        <div className="space-y-4">
-          <p className="text-sm text-gray-600">Record a day where you chose not to trade.</p>
+      <Modal isOpen={showNoTrade} onClose={() => setShowNoTrade(false)} title='Mark No Trade Day'>
+        <div className='space-y-4'>
+          <p className='text-sm text-gray-600 dark:text-gray-300'>Record a day where you chose not to trade.</p>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+            <label className='block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1'>Date</label>
             <input
-              type="date"
+              type='date'
               value={noTradeDate}
               onChange={e => setNoTradeDate(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className='w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500'
             />
           </div>
-          <div className="flex gap-3">
-            <Button className="flex-1" onClick={handleNoTrade}>Confirm</Button>
-            <Button variant="secondary" onClick={() => setShowNoTrade(false)}>Cancel</Button>
+          <div className='flex gap-3'>
+            <Button className='flex-1' onClick={handleNoTrade}>
+              Confirm
+            </Button>
+            <Button variant='secondary' onClick={() => setShowNoTrade(false)}>
+              Cancel
+            </Button>
           </div>
         </div>
       </Modal>

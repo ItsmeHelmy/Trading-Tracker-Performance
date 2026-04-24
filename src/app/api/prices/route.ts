@@ -1,48 +1,84 @@
 import { NextResponse } from 'next/server'
 
 const SYMBOLS = [
-  { key: 'XAUUSD', symbol: 'GC=F', name: 'Gold (XAU/USD)' },
-  { key: 'XAGUSD', symbol: 'SI=F', name: 'Silver (XAG/USD)' },
-  { key: 'BTCUSD', symbol: 'BTC-USD', name: 'Bitcoin (BTC/USD)' },
-  { key: 'DXY', symbol: 'DX-Y.NYB', name: 'US Dollar Index' },
-  { key: 'USOIL', symbol: 'CL=F', name: 'WTI Crude Oil' },
+  { key: 'XAUUSD', symbol: 'XAU/USD', name: 'Gold (XAU/USD)' },
+  { key: 'XAGUSD', symbol: 'XAG/USD', name: 'Silver (XAG/USD)' },
+  { key: 'BTCUSD', symbol: 'BTC/USD', name: 'Bitcoin (BTC/USD)' },
+  { key: 'DXY', symbol: 'DXY', name: 'US Dollar Index' },
+  { key: 'USOIL', symbol: 'USOIL', name: 'WTI Crude Oil' },
 ]
 
-interface YahooQuote {
-  symbol: string
-  regularMarketPrice?: number
-  regularMarketChange?: number
-  regularMarketChangePercent?: number
+interface TwelveQuote {
+  close?: string
+  change?: string
+  percent_change?: string
+  code?: number
+  status?: string
+  message?: string
+}
+
+type PriceItem = {
+  key: string
+  name: string
+  price: number | null
+  change: number | null
+  changePercent: number | null
+}
+
+function toNumber(value: string | undefined): number | null {
+  if (!value) return null
+  const n = Number(value)
+  return Number.isFinite(n) ? n : null
+}
+
+async function fetchQuote(symbol: string, apiKey: string): Promise<TwelveQuote | null> {
+  try {
+    const url = `https://api.twelvedata.com/quote?symbol=${encodeURIComponent(symbol)}&apikey=${encodeURIComponent(apiKey)}`
+    const res = await fetch(url, {
+      next: { revalidate: 60 },
+    })
+
+    if (!res.ok) return null
+
+    const data = (await res.json()) as TwelveQuote
+    if (data.status === 'error') return null
+
+    return data
+  } catch {
+    return null
+  }
 }
 
 export async function GET() {
+  const apiKey = process.env.TWELVEDATA_API_KEY
+
+  if (!apiKey) {
+    return NextResponse.json(
+      { error: 'Missing TWELVEDATA_API_KEY' },
+      { status: 500 }
+    )
+  }
+
   try {
-    const symbolList = SYMBOLS.map(s => s.symbol).join(',')
-    const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbolList}&fields=regularMarketPrice,regularMarketChange,regularMarketChangePercent`
-    
-    const response = await fetch(url, {
-      headers: { 'User-Agent': 'Mozilla/5.0' },
-      next: { revalidate: 60 }
-    })
-    
-    if (!response.ok) throw new Error('Failed to fetch prices')
-    
-    const data = await response.json()
-    const quotes: YahooQuote[] = data.quoteResponse?.result || []
-    
-    const prices = SYMBOLS.map(s => {
-      const quote = quotes.find(q => q.symbol === s.symbol)
-      return {
-        key: s.key,
-        name: s.name,
-        price: quote?.regularMarketPrice ?? null,
-        change: quote?.regularMarketChange ?? null,
-        changePercent: quote?.regularMarketChangePercent ?? null,
-      }
-    })
-    
-    return NextResponse.json(prices)
+    const results = await Promise.all(
+      SYMBOLS.map(async (s): Promise<PriceItem> => {
+        const quote = await fetchQuote(s.symbol, apiKey)
+
+        return {
+          key: s.key,
+          name: s.name,
+          price: toNumber(quote?.close),
+          change: toNumber(quote?.change),
+          changePercent: toNumber(quote?.percent_change),
+        }
+      })
+    )
+
+    return NextResponse.json(results)
   } catch {
-    return NextResponse.json({ error: 'Failed to fetch prices' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Failed to fetch prices' },
+      { status: 500 }
+    )
   }
 }

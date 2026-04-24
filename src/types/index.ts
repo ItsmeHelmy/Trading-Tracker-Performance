@@ -2,8 +2,11 @@ export interface Trade {
   id: number
   date: string
   asset: string
+  side: 'LONG' | 'SHORT'
+  quantity: number
   entry_price: number
   exit_price: number
+  fee: number
   pnl: number
   risk_reward?: number | null
   notes: string
